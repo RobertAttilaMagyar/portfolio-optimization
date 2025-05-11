@@ -1,10 +1,18 @@
-#pragma once
 #include "portfolio.hpp"
 #include <algorithm>
+#include <math.h>
 #include <numeric>
 #include <random>
 #include <ranges>
-#include <math.h>
+
+Asset &Asset::operator=(const Asset &other)
+{
+  this->ticker = other.ticker;
+  this->meanReturn = other.meanReturn;
+  this->volatility = other.volatility;
+
+  return *this;
+}
 
 Asset &Asset::operator=(Asset &&other) noexcept
 {
@@ -37,7 +45,7 @@ bool Portfolio::normalizeWeights()
   return true;
 }
 
-Portfolio::Portfolio(const size_t numElements, const bool useRandom = false)
+Portfolio::Portfolio(const size_t numElements, const bool useRandom /* = false*/)
     : _numElements(numElements), assets(std::vector<Asset>(numElements)),
       weights(std::vector<double>(numElements, 1.0)),
       decisionVariables(std::vector<bool>(numElements, true)),
@@ -72,20 +80,20 @@ void Portfolio::chooseDecisions()
   decisionVariables = std::vector<bool>(_numElements, true);
 }
 
-double Portfolio::calcExpectedReturn()
+double Portfolio::getExpectedReturn()
 {
   return std::accumulate(assets.begin(), assets.end(), 0.0,
-                         [i = size_t{0}, this](const Asset &a) mutable
+                         [i = size_t{0}, this](double sum, const Asset &a) mutable
                          {
-                           double wS = this->decisionVariables.at(i)
-                                           ? this->weights.at(i) * a.meanReturn
-                                           : 0.0;
+                           sum += this->decisionVariables.at(i)
+                                      ? this->weights.at(i) * a.meanReturn
+                                      : 0.0;
                            i++;
-                           return wS;
+                           return sum;
                          });
 }
 
-double Portfolio::calcPortfolioVariance()
+double Portfolio::getPortfolioVariance()
 {
   double aggrVar;
   for (size_t i = 0; i < _numElements; i++)
@@ -96,6 +104,11 @@ double Portfolio::calcPortfolioVariance()
                  weights[j] * assetCovarianceMatrix(i, j);
     }
   }
+
+  return aggrVar;
 }
 
-double Portfolio::calcSharpe() { return calcExpectedReturn() / sqrt(calcPortfolioVariance()); }
+double Portfolio::getSharpe()
+{
+  return getExpectedReturn() / sqrt(getPortfolioVariance());
+}

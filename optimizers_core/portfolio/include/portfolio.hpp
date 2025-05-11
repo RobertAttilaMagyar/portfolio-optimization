@@ -21,6 +21,8 @@ struct Asset
         : ticker(other.ticker), meanReturn(other.meanReturn),
           volatility(other.volatility) {}
 
+    Asset &operator=(const Asset &other);
+
     Asset &operator=(Asset &&other) noexcept;
 
     bool operator==(const Asset &other) const;
@@ -34,9 +36,9 @@ public:
     void chooseDecisions();
     bool normalizeWeights();
 
-    double calcPortfolioVariance();
-    double calcExpectedReturn();
-    double calcSharpe();
+    double getPortfolioVariance();
+    double getExpectedReturn();
+    double getSharpe();
 
 public:
     std::vector<Asset> assets;
